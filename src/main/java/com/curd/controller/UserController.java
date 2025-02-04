@@ -4,8 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,10 +31,36 @@ public class UserController {
 		return userService.registerUser(request);
 	}
 
+	@PreAuthorize("hasAuthority('ADMIN')")
 	@GetMapping
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public List<UserDto> getAllUsers() {
-		
+
 		return userService.getAllUsers();
+	}
+
+	@GetMapping("/{id}")
+	public UserDto getUserById(@PathVariable Integer id) {
+
+		return userService.getUserById(id);
+	}
+
+	@GetMapping("/profile")
+	public UserDto getProfile() {
+
+		return userService.getProfile();
+	}
+
+	@PutMapping("/update/{id}")
+	public UserDto updateProfile(@PathVariable Integer id, @RequestBody UserRequest request) {
+
+		return userService.updateProfile(id, request);
+	}
+
+	@PreAuthorize("hasAuthority('ADMIN')")
+	@DeleteMapping("/{id}")
+	public UserDto deleteById(@PathVariable Integer id) {
+
+		return userService.deleteById(id);
+
 	}
 }

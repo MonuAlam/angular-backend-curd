@@ -11,6 +11,7 @@ import com.curd.model.response.NotesDto;
 @Repository
 public interface NotesRepository extends JpaRepository<Notes, Integer> {
 
-	List<NotesDto> findByUserId(Integer id);
+	List<Notes> findByUserId(Integer id);
+
 
 }

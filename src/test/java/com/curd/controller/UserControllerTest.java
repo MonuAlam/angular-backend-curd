@@ -49,7 +49,7 @@ class UserControllerTest {
 		
 		userRole = Role.builder()
 				.id(1)
-				.name(UsersRoles.ROLE_USER.name())
+				.name(UsersRoles.USER.name())
 				.build();
 		
 		userRequest = UserRequest.builder()

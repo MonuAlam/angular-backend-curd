@@ -3,6 +3,7 @@ package com.curd.service;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.curd.model.entity.Notes;
@@ -25,12 +26,12 @@ public class NotesService {
 
 	public NotesDto createNotes(NotesRequest request) {
 
-        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
 
-        Users user = userRepository.findByEmail(userPrincipal.getUsername());
+		Users user = userRepository.findByEmail(userPrincipal.getUsername());
 
-		
-		Notes notes = toEntity( user,request);
+		Notes notes = toEntity(user, request);
 
 		return NotesDtoMapper.toResponseDto(notesRepository.save(notes));
 	}
@@ -38,9 +39,7 @@ public class NotesService {
 	private Notes toEntity(Users users, NotesRequest request) {
 
 		return Notes.builder().title(request.getTitle()).description(request.getDescription())
-				.addedDate(LocalDate.now()).updatedDate(LocalDate.now())
-				.user(users)
-				.build();
+				.addedDate(LocalDate.now()).updatedDate(LocalDate.now()).user(users).build();
 
 	}
 
@@ -57,32 +56,25 @@ public class NotesService {
 		return NotesDtoMapper.toResponseDto(notes);
 	}
 
+	public NotesDto updateNotes(Integer id, NotesRequest request) {
 
-    public NotesDto updateNotes(Integer id, NotesRequest request) {
+		UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication()
+				.getPrincipal();
 
-        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Users user = userRepository.findByEmail(userPrincipal.getUsername());
 
+		Notes notes = notesRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Notes not found for id " + id));
 
-        Users user = userRepository.findByEmail(userPrincipal.getUsername());
+		Notes updatedNotes = updateWithBuilder(notes, request, user);
 
+		return NotesDtoMapper.toResponseDto(notesRepository.save(updatedNotes));
+	}
 
-        Notes notes = notesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notes not found for id " + id));
-
-        Notes updatedNotes = updateWithBuilder(notes, request, user);
-
-
-        return NotesDtoMapper.toResponseDto(notesRepository.save(updatedNotes));
-    }
-
-    private Notes updateWithBuilder(Notes notes, NotesRequest request, Users user) {
-        return notes.toBuilder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .updatedDate(LocalDate.now())
-                .user(user)  
-                .build();
-    }
+	private Notes updateWithBuilder(Notes notes, NotesRequest request, Users user) {
+		return notes.toBuilder().title(request.getTitle()).description(request.getDescription())
+				.updatedDate(LocalDate.now()).user(user).build();
+	}
 
 	public NotesDto deleteById(Integer id) {
 
@@ -92,6 +84,21 @@ public class NotesService {
 		notesRepository.delete(notes);
 
 		return NotesDtoMapper.toResponseDto(notes);
+	}
+
+	public List<NotesDto> getNotesByUser() {
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = authentication.getName();
+		Users users = userRepository.findByEmail(email);
+		int userId = users.getId();
+//		System.out.println(userId);
+//		System.out.println(email);
+//		System.out.println(users);
+		List<Notes> notes = notesRepository.findByUserId(userId);
+//		System.out.println("Notes:"+notes);
+
+		return notes.stream().map(NotesDtoMapper::toResponseDto).toList();
 	}
 
 }

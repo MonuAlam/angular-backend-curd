@@ -58,12 +58,12 @@ class UserServiceTest {
 		
 		userRole = Role.builder()
 				.id(1)
-				.name(UsersRoles.ROLE_USER.name())
+				.name(UsersRoles.USER.name())
 				.build();
 		
 		adminRole = Role.builder()
 				.id(2)
-				.name(UsersRoles.ROLE_ADMIN.name())
+				.name(UsersRoles.ADMIN.name())
 				.build();
 
 
@@ -141,7 +141,7 @@ class UserServiceTest {
 
 		when(bCryptPasswordEncoder.encode(request.getPassword())).thenReturn("monu123");
 
-		when(roleRepository.findByName(UsersRoles.ROLE_USER.name())).thenReturn(userRole);
+		when(roleRepository.findByName(UsersRoles.USER.name())).thenReturn(userRole);
 
 		when(userRepository.save(any(Users.class))).thenReturn(user);
 

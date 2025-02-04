@@ -1,10 +1,13 @@
 package com.curd.service;
 
+import java.net.Authenticator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -61,10 +64,10 @@ public class UserService {
 	        }
 	    } else {
 
-	        Role defaultRole = roleRepository.findByName(UsersRoles.ROLE_USER.name());
+	        Role defaultRole = roleRepository.findByName(UsersRoles.USER.name());
 	        if (defaultRole == null) {
 
-	            defaultRole = new Role(null, UsersRoles.ROLE_USER.name());
+	            defaultRole = new Role(null, UsersRoles.USER.name());
 	            roleRepository.save(defaultRole);
 	        }
 	        roles.add(defaultRole);
@@ -84,6 +87,55 @@ public class UserService {
 	public List<UserDto> getAllUsers() {
 
 		return userRepository.findAll().stream().map(UserDtoMapper::toResponseDto).toList();
+	}
+
+
+	public UserDto getProfile() {
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String email = authentication.getName();
+
+		Users users = userRepository.findByEmail(email);
+
+		return UserDtoMapper.toResponseDto(users);
+	}
+
+
+	public UserDto updateProfile(Integer id, UserRequest request) {
+
+		Users users=userRepository.findById(id).orElseThrow(()->new RuntimeException("User Not found"));
+		
+		Users updatedUsers=updateWithBuilder(users, request);
+		
+		return UserDtoMapper.toResponseDto(userRepository.save(updatedUsers));
+	}
+	
+	private Users updateWithBuilder(Users users,UserRequest request) {
+		return users.toBuilder()
+				.name(request.getName())
+				.email(request.getEmail())
+				.roles(request.getRoles())
+				.phone(request.getPhone())
+				.build();
+	}
+
+
+	public UserDto getUserById(Integer id) {
+
+		Users users=userRepository.findById(id).orElseThrow(()->new RuntimeException("User Not found"));
+		
+		return UserDtoMapper.toResponseDto(users);
+	}
+
+
+	public UserDto deleteById(Integer id) {
+
+		Users users=userRepository.findById(id).orElseThrow(()->new RuntimeException("User Not found"));
+		
+		userRepository.delete(users);
+		
+		return UserDtoMapper.toResponseDto(users);
+		
 	}
 	
 	
